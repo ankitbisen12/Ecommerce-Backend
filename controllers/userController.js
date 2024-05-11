@@ -2,26 +2,20 @@
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 
-exports.fetchUserById = catchAsync(async (req, res, next) => {
-  const id = req.params.id;
+exports.fetchUserById= catchAsync(async (req, res, next) => {
+  const { id } = req.user;
+  // console.log("Inside usercontroller",req.user);
   const user = await User.findById(id);
-  res.status(200).json(user);
+  // delete user.password;
+  // delete user.salt;
+  res.status(200).json({id:user.id,name:user.name,addresses:user.addresses,email:user.email,role:user.role});
 });
 
-// exports.createCategory = catchAsync(async (req, res, next) => {
-//   const newCategory = await Category.create(req.body);
-//   res.status(201).json({
-//     status: 'success',
-//     product: newCategory,
-//   });
-//   console.log(newCategory);
-// });
-
 exports.updateUser = catchAsync(async (req, res, next) => {
-  const {id} = req.params;
+  const { id } = req.params;
   const user = await User.findByIdAndUpdate(id, req.body, {
     new: true,
   });
 
-  res.status(400).json(user);
+  res.status(200).json(user);
 });

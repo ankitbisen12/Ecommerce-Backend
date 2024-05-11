@@ -7,12 +7,11 @@ const router = express.Router();
 // router.route('/products').get(createProduct);
 router
   .route('/')
-  .post(productController.createProduct)
-  .get(productController.fetchProducts)
-  .get(productController.fetchAllProducts);
+  .get(productController.fetchAllProducts)
+  .post(productController.createProduct);
 
 router
-  .route('/:id')
+  .route('/:id') //Here id is varibale in route
   .get(productController.fetchProductById)
   .patch(productController.updateProduct);
 

@@ -1,15 +1,26 @@
 const Order = require('../models/orderModel');
 const catchAsync = require('../utils/catchAsync');
+const User = require('../models/userModel');
+const Product =require('../models/productModel');
+const { sendMail, invoiceTemplate } = require('../utils/common');
 
 exports.fetchOrdersByUser = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
-  const orders = await Order.find({ user: userId });
-
+  const {id } = req.user;
+  const orders = await Order.find({ user: id });
   res.status(200).json(orders);
 });
 
 exports.createOrder = catchAsync(async (req, res, next) => {
   const order = await Order.create(req.body);
+  //TODO:here we have to update stocks
+
+  for(let item of order.items){
+   let product=  await Product.findById({_id:item.product.id});
+    product.$inc( 'stcok',-1*item.quantity);
+    await product.save();
+  }
+  const user  = User.findById(order.user);
+  // sendMail({to:user.email,html:invoiceTemplate(order),subject:'Order Received'});
   res.status(201).json(order);
 });
 
@@ -33,15 +44,9 @@ exports.fetchAllOrders = catchAsync(async (req, res, next) => {
 
   // sort= {_sort:"price",_order="desc"}
   //pagination = {_page:1,_limit=10};
-  //TODO: we have to try with multiple category and brands after change in front-end
-  // console.log(req);
-
-  let condition = {};
-  if (!req.query.admin) {
-    condition.deleted = { $ne: true };
-  }
-  let query = Order.find(condition);
-  let totalOrdersQuery = Order.find(condition);
+  
+  let query = Order.find({deleted:{$ne:true}});
+  let totalOrdersQuery = Order.find({deleted:{$ne:true}});
 
   //TODO: How to get sort on discounted Price not on Actual Price
   if (req.query._sort && req.query._order) {
@@ -49,7 +54,7 @@ exports.fetchAllOrders = catchAsync(async (req, res, next) => {
   }
 
   const totalDocs = await totalOrdersQuery.count().exec();
-  console.log(totalDocs);
+  // console.log({totalDocs});
 
   if (req.query._page && req.query._limit) {
     const pageSize = req.query._limit;
@@ -60,9 +65,6 @@ exports.fetchAllOrders = catchAsync(async (req, res, next) => {
   const docs = await query.exec();
 
   res.set('X-Total-Count', totalDocs);
-  res.status(201).json({
-    status: 'success',
-    product: docs,
-  });
+  res.status(200).json(docs);
   // console.log(docs);
 });

@@ -1,25 +1,25 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const brandSchema = new mongoose.Schema(
   {
-    label: { type: "String", required: true, unique: true },
-    value: { type: "String", required: true, unique: true },
+    label: { type: 'String', required: true, unique: true },
+    value: { type: 'String', required: true, unique: true },
   },
-  {
-    toJSON: {
-      virtuals: true,
-      versionKey: false,
-      tarnsform: function (doc, ret) {
-        delete ret._id;
-      },
-    },
-  }
+  { timestamps: true }
 );
 
-brandSchema.virtual("id").get(function () {
+brandSchema.virtual('id').get(function () {
   return this._id;
 });
 
-const Brand = mongoose.model("Brand", brandSchema);
+brandSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: function (doc, ret) {
+    delete ret._id;
+  },
+});
+
+const Brand = mongoose.model('Brand', brandSchema);
 
 module.exports = Brand;

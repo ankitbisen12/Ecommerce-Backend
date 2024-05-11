@@ -1,25 +1,26 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema(
   {
-    label: { type: "String", required: true, unique: true },
-    value: { type: "String", required: true, unique: true },
+    label: { type: 'String', required: true, unique: true },
+    value: { type: 'String', required: true, unique: true },
   },
-  {
-    toJSON: {
-      virtuals: true,
-      versionKey: false,
-      tarnsform: function (doc, ret) {
-        delete ret._id;
-      },
-    },
-  }
+  { timestamps: true }
 );
 
-categorySchema.virtual("id").get(function () {
+//this will simply set _id =id
+categorySchema.virtual('id').get(function () {
   return this._id;
 });
 
-const Category = mongoose.model("Category", categorySchema);
+categorySchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: function (doc, ret) {
+    delete ret._id;
+  },
+});
+
+const Category = mongoose.model('Category', categorySchema);
 
 module.exports = Category;

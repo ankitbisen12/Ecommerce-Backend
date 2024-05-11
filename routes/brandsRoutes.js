@@ -8,4 +8,5 @@ router
   .route('/')
   .get(brandController.fetchBrands)
   .post(brandController.createBrand);
+
 module.exports = router;

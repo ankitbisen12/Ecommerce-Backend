@@ -3,6 +3,7 @@ const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const catchAsync = require('../utils/catchAsync');
 const { sanitizer } = require('../utils/common');
+const { token } = require('morgan');
 const SECRET_KEY = 'SECRET_KEY';
 
 exports.createUser = catchAsync(async (req, res, next) => {
@@ -14,6 +15,7 @@ exports.createUser = catchAsync(async (req, res, next) => {
     32,
     'sha256',
     async function (err, hashedPassword) {
+      // console.log('req.body.name', req.body.name);
       const newUser = await User.create({
         ...req.body,
         password: hashedPassword,
@@ -25,8 +27,14 @@ exports.createUser = catchAsync(async (req, res, next) => {
         if (err) {
           res.send(400).json(err);
         } else {
-          const token = jwt.sign(sanitizer(newUser), SECRET_KEY);
-          res.status(201).json(token);
+          const token = jwt.sign(sanitizer(newUser), process.env.JWT_SECRET_KEY);
+          res
+            .cookie('jwt', token, {
+              expires: new Date(Date.now() + 3600000),
+              httpOnly: true,
+            })
+            .status(201)
+            .json({ id: newUser.id, role: newUser.role });
         }
       });
     }
@@ -34,9 +42,33 @@ exports.createUser = catchAsync(async (req, res, next) => {
 });
 
 exports.loginUser = catchAsync(async (req, res, next) => {
-  res.json(req.user);
+  // const user = await User.findOne({email:req.body.email});
+  const user = req.user;
+  res
+    .cookie('jwt', user.token, {
+      expires: new Date(Date.now() + 3600000),
+      httpOnly: true,
+    })
+    .status(201)
+    .json({ id: user.id, role: user.role });
 });
 
-exports.checkUser = catchAsync(async (req, res, next) => {
-  res.json({ status: 'success', user: req.user });
+exports.checkAuth = catchAsync(async (req, res, next) => {
+  if (req.user) {
+    // console.log('Running');
+    res.json(req.user);
+  } else {
+    // console.log('Error Running');
+    res.sendStatus(401);
+    // res.status(400).json({message:'Invalid request'});
+  }
+});
+
+exports.logOut = catchAsync(async (req, res, next) => {
+  res
+    .cookie('jwt', null, {
+      expires: new Date(Date.now()),
+      httpOnly: true,
+    })
+    .sendStatus(200);
 });

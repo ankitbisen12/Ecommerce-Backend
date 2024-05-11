@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { Schema } = mongoose;
+// const { Schema } = mongoose;
 const userSchema = new mongoose.Schema(
   {
     email: { type: 'String', required: true, unique: true },
@@ -9,24 +9,24 @@ const userSchema = new mongoose.Schema(
       required: true,
       default: 'user',
     },
-    addresses: { type: [Schema.Types.Mixed] },
-    //TODO: we can create separate schema for this.
+    addresses: { type: [mongoose.Schema.Types.Mixed] }, //TODO: we can create separate schema for this. //later
     name: { type: String },
-    salt:Buffer
+    salt:Buffer,
+    resetPasswordToken:{type:String,default:''}
   },
-  {
-    toJSON: {
-      virtuals: true,
-      versionKey: false,
-      tarnsform: function (doc, ret) {
-        delete ret._id;
-      },
-    },
-  }
+  { timestamps: true },
 );
 
 userSchema.virtual('id').get(function () {
   return this._id;
+});
+
+userSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: function (doc, ret) {
+    delete ret._id;
+  },
 });
 
 const User = mongoose.model('User', userSchema);

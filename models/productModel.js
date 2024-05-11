@@ -16,7 +16,6 @@ const productSchema = new mongoose.Schema(
     },
     rating: {
       type: Number,
-      default: 0,
       min: [0, 'wrong min rating'],
       max: [5, 'wrong max rating'],
     },
@@ -25,22 +24,45 @@ const productSchema = new mongoose.Schema(
       min: [0, 'wrong min stock'],
       max: [50, 'wrong max stock'],
     },
-    brand: { type: 'String', required: true },
-    category: { type: 'String', required: true },
-    imageSrc: { type: 'String', required: true },
+    brand: { type: String, required: true },
+    category: { type: String, required: true },
+    thumbnail: { type: String, required: true },
     images: { type: [String], required: true },
+    colors: { type: [mongoose.Schema.Types.Mixed] },
+    sizes: { type: [mongoose.Schema.Types.Mixed] },
+    highlights: { type: [String] },
+    discountPrice:{type:Number},
     deleted: { type: Boolean, default: false },
   },
-  {
-    toJSON: {
-      virtuals: true,
-      versionKey: false,
-      tarnsform: function (doc, ret) {
-        delete ret._id;
-      },
-    },
-  }
+  { timestamps: true }
+  // {
+  //   toJSON: {
+  //     virtuals: true,
+  //     versionKey: false,
+  //     transform: function (doc, ret) {
+  //       delete ret._id;
+  //     },
+  //   },
+  // }
 );
+
+// const virtual = productSchema.virtual('id');
+productSchema.virtual('id').get(function () {
+  return this._id;
+});
+
+//we can't sort using the virtual fields,better to make this field at time of doc creation
+// productSchema.virtual('discountPrice').get(function () {
+//   return Math.round(this.price * (1 - this.discountPercentage / 100));
+// });
+
+productSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: function (doc, ret) {
+    delete ret._id;
+  },
+});
 
 // {
 //     "id": 1,
@@ -61,11 +83,6 @@ const productSchema = new mongoose.Schema(
 //     ],
 //     "thumbnail": "https://i.dummyjson.com/data/products/1/1.jpg"
 //   },
-// const virtual = productSchema.virtual('id');
-productSchema.virtual('id').get(function () {
-  return this._id;
-});
-
 // productSchema.set('toJSON', {
 //   virtuals: true,
 //   versionKey: false,

@@ -1,17 +1,24 @@
 const Cart = require('../models/cartModel');
 const catchAsync = require('../utils/catchAsync');
 
-exports.fetchCartByUser = catchAsync(async (req, res, next) => {
-  const { user } = req.query;
-  const cartItems = await Cart.find({ user: user })
-    .populate('user')
-    .populate('product');
-  res.status(200).json(cartItems);
-});
+exports.fetchCartByUser = async (req, res, next) => {
+  try{
+    const { id } = req.user;
+    // console.log("Inside cartController",req.user);
+    const cartItems = await Cart.find({ user: id })
+      // .populate('user')
+      .populate('product');
+    res.status(200).json(cartItems);
+
+  } catch (err) {
+    res.status(400).json(err);
+  }
+};
 
 exports.addToCart = catchAsync(async (req, res, next) => {
-  const newItem = await Cart.create(req.body);
-  const result = await newItem.populate('product');
+  const {id}= req.user;
+  const newItemToCart = await Cart.create({...req.body,user:id});
+  const result = await newItemToCart.populate('product');
   res.status(201).json(result);
 });
 
